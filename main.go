@@ -152,7 +152,7 @@ func main() {
 	}
 
 	var result []Result
-	if err := db.Raw("SELECT c.id AS cid, c.maker_id, c.client_id, c.warehouse_id, c.commodity_id, c.active_status, c.created_at AS chr_created_date, cd.chamber, cd.stack,IF(ceil(cd.bag) = cd.bag, 0, cd.bag) as bag, cd.quantity, cd.field_name, cd.field_value, cd.fumigation_date, cd.spray_date, cd.cleaniness_date, cd.remark, cd.created_at AS cd_created_date FROM chr c, chr_detail cd WHERE c.id=cd.chr_id").Scan(&result).Error; err != nil {
+	if err := db.Raw("SELECT c.id AS cid, c.maker_id, c.client_id, c.warehouse_id, c.commodity_id, c.active_status, c.created_at AS chr_created_date, cd.chamber, cd.stack, cd.bag, cd.quantity, cd.field_name, cd.field_value, cd.fumigation_date, cd.spray_date, cd.cleaniness_date, cd.remark, cd.created_at AS cd_created_date FROM chr c, chr_detail cd WHERE c.id=cd.chr_id").Scan(&result).Error; err != nil {
 		// return any error will rollback
 
 	}
