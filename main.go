@@ -15,24 +15,24 @@ import (
 )
 
 type Result struct {
-	CID            int       `json:"cid,omitempty"`
-	MakerId        int       `json:"maker_id,omitempty"`
-	ClientId       int       `json:"client_id,omitempty"`
-	WarehouseId    int       `json:"warehouse_id,omitempty"`
-	CommodityId    int       `json:"commodity_id,omitempty"`
-	ActiveStatus   int       `json:"active_status,omitempty"`
-	ChrCreateddate time.Time `json:"chr_created_date,omitempty"`
-	Chamber        string    `json:"chamber,omitempty"`
-	Stack          string    `json:"stack,omitempty"`
-	Bag            []uint8   `json:"bag,omitempty"`
-	Quantity       string    `json:"quantity,omitempty"`
-	FieldName      string    `json:"field_name,omitempty"`
-	FieldValue     string    `json:"field_value,omitempty"`
-	FumigationDate string    `json:"fumigation_date,omitempty"`
-	SprayDate      string    `json:"spray_date,omitempty"`
-	CleaninessDate string    `json:"cleaniness_date,omitempty"`
-	Remark         string    `json:"remark,omitempty"`
-	CdCreateddate  time.Time `json:"cd_created_date,omitempty"`
+	CID            int        `json:"cid,omitempty"`
+	MakerId        int        `json:"maker_id,omitempty"`
+	ClientId       int        `json:"client_id,omitempty"`
+	WarehouseId    int        `json:"warehouse_id,omitempty"`
+	CommodityId    int        `json:"commodity_id,omitempty"`
+	ActiveStatus   int        `json:"active_status,omitempty"`
+	ChrCreateddate *time.Time `json:"chr_created_date,omitempty"`
+	Chamber        string     `json:"chamber,omitempty"`
+	Stack          string     `json:"stack,omitempty"`
+	Bag            []uint8    `json:"bag,omitempty"`
+	Quantity       string     `json:"quantity,omitempty"`
+	FieldName      string     `json:"field_name,omitempty"`
+	FieldValue     string     `json:"field_value,omitempty"`
+	FumigationDate *time.Time `json:"fumigation_date,omitempty"`
+	SprayDate      *time.Time `json:"spray_date,omitempty"`
+	CleaninessDate *time.Time `json:"cleaniness_date,omitempty"`
+	Remark         string     `json:"remark,omitempty"`
+	CdCreateddate  *time.Time `json:"cd_created_date,omitempty"`
 }
 
 type DTRAudit struct {
@@ -114,7 +114,7 @@ type DTRQuality struct {
 }
 
 func (DTRAudit) TableName() string {
-	return "dtr_audit2"
+	return "dtr_audit"
 }
 
 func (DTRQuality) TableName() string {
@@ -170,7 +170,7 @@ func main() {
 			}
 			u, err := uuid.NewV4()
 			dtr := DTRAudit{
-				CreatedAt:     record.ChrCreateddate,
+
 				MakerID:       record.MakerId,
 				WarehouseID:   record.WarehouseId,
 				ClientId:      record.ClientId,
@@ -183,7 +183,7 @@ func main() {
 				RequestId:     u.String(),
 			}
 			data := tx.Create(&dtr)
-			//fmt.Println(dtr.ID)
+			fmt.Println(dtr.ID)
 
 			err = data.Error
 
@@ -220,6 +220,10 @@ func main() {
 				KarnalBunt:             float32(kb),
 				SmallMudBall:           float32(smb),
 				OtherFoodGrain:         float32(ofg),
+				QualityAssessmentDate:  record.ChrCreateddate,
+				FumigationDate:         record.FumigationDate,
+				SprayDate:              record.SprayDate,
+				CleanlinessDate:        record.CleaninessDate,
 			}
 
 			err = tx.Create(&dtrQuality).Error
