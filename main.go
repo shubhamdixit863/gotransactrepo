@@ -149,6 +149,8 @@ func bagRecord(str string) string {
 
 }
 
+//stock_count=quantity
+
 func init() {
 	// load .env file
 	err := godotenv.Load(".env")
@@ -211,6 +213,7 @@ func main() {
 				commodityType = "grain"
 
 			}
+			stk, _ := strconv.ParseFloat(record.Quantity, 64)
 			u, err := uuid.NewV4()
 			dtr := DTRAudit{
 				CreatedAt:     record.ChrCreateddate,
@@ -219,6 +222,7 @@ func main() {
 				ClientId:      record.ClientId,
 				CommodityId:   record.CommodityId,
 				StkNo:         record.Stack,
+				StockCount:    stk,
 				BagsCount:     []uint8(bagRecord(record.Bag)),
 				FormType:      "quality",
 				DtrType:       "quality",
