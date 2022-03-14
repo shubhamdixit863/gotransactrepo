@@ -115,7 +115,7 @@ type DTRQuality struct {
 }
 
 func (DTRAudit) TableName() string {
-	return "dtr_audit2"
+	return "dtr_audit"
 }
 
 func (DTRQuality) TableName() string {
