@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/araddon/dateparse"
 	uuid "github.com/nu7hatch/gouuid"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -28,38 +29,37 @@ type Result struct {
 	Quantity       string     `json:"quantity,omitempty"`
 	FieldName      string     `json:"field_name,omitempty"`
 	FieldValue     string     `json:"field_value,omitempty"`
-	FumigationDate *time.Time `json:"fumigation_date,omitempty"`
-	SprayDate      *time.Time `json:"spray_date,omitempty"`
-	CleaninessDate *time.Time `json:"cleaniness_date,omitempty"`
-	Remark         string     `json:"remark,omitempty"`
+	FumigationDate string     `json:"fumigation_date,omitempty"`
+	SprayDate      string     `json:"spray_date,omitempty"`
+	CleaninessDate string     `json:"remark,omitempty"`
 	CdCreateddate  *time.Time `json:"cd_created_date,omitempty"`
 }
 
 type DTRAudit struct {
-	ID            int       `json:"id"`
-	RequestId     string    `json:"request_id"`
-	AuditID       int       `json:"audit_id"`
-	MakerID       int       `json:"maker_id"`
-	EnduserID     int       `json:"enduser_id"`
-	FarmerID      int       `gorm:"-" json:"farmer_id"`
-	WarehouseID   int       `json:"warehouse_id"`
-	ClientId      int       `json:"client_id"`
-	CommodityType string    `json:"commodity_type"`
-	FormType      string    `json:"form_type"`
-	DtrType       string    `json:"dtr_type"`
-	ContractId    int       `json:"contract_id"`
-	CommodityId   int       `json:"commodity_id"`
-	StockCount    float64   `json:"stock_count"`
-	BagsCount     []uint8   `json:"bags_count"`
-	StkNo         string    `json:"stk_no"`
-	BagWeight     float64   `json:"bag_weight"`
-	Approved      string    `gorm:"default:0" json:"approved"`
-	Source        string    `json:"source"`
-	UpdatedSource string    `json:"updated_source"`
-	UserAgent     string    `json:"user_agent"`
-	CreatedAt     time.Time `gorm:"<-:create" json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
-	ApprovedBy    int       `json:"approved_by"`
+	ID            int        `json:"id"`
+	RequestId     string     `json:"request_id"`
+	AuditID       int        `json:"audit_id"`
+	MakerID       int        `json:"maker_id"`
+	EnduserID     int        `json:"enduser_id"`
+	FarmerID      int        `gorm:"-" json:"farmer_id"`
+	WarehouseID   int        `json:"warehouse_id"`
+	ClientId      int        `json:"client_id"`
+	CommodityType string     `json:"commodity_type"`
+	FormType      string     `json:"form_type"`
+	DtrType       string     `json:"dtr_type"`
+	ContractId    int        `json:"contract_id"`
+	CommodityId   int        `json:"commodity_id"`
+	StockCount    float64    `json:"stock_count"`
+	BagsCount     []uint8    `json:"bags_count"`
+	StkNo         string     `json:"stk_no"`
+	BagWeight     float64    `json:"bag_weight"`
+	Approved      string     `gorm:"default:0" json:"approved"`
+	Source        string     `json:"source"`
+	UpdatedSource string     `json:"updated_source"`
+	UserAgent     string     `json:"user_agent"`
+	CreatedAt     *time.Time `gorm:"<-:create" json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	ApprovedBy    int        `json:"approved_by"`
 }
 
 type DTRQuality struct {
@@ -102,9 +102,9 @@ type DTRQuality struct {
 	StkNo                                 string     `json:"stk_no"`
 	BagsCount                             int        `json:"bags_count"`
 	StockCount                            float64    `json:"stock_count"`
-	FumigationDate                        *time.Time `json:"fumigation_date,omitempty"`
-	SprayDate                             *time.Time `json:"spray_date,omitempty"`
-	CleanlinessDate                       *time.Time `json:"cleanliness_date,omitempty"`
+	FumigationDate                        *time.Time `json:"fumigation_date"`
+	SprayDate                             *time.Time `json:"spray_date"`
+	CleanlinessDate                       *time.Time `json:"cleanliness_date"`
 	Remarks                               string     `json:"remarks"`
 	Source                                string     `json:"source"`
 	UpdatedSource                         string     `json:"updated_source"`
@@ -114,11 +114,26 @@ type DTRQuality struct {
 }
 
 func (DTRAudit) TableName() string {
-	return "dtr_audit"
+	return "dtr_audit2"
 }
 
 func (DTRQuality) TableName() string {
 	return "dtr_quality"
+}
+
+func evaluateString(str string) (response *time.Time) {
+	//re := regexp.MustCompile("(0?[1-9]|1[012])/(0?[1-9]|[12][0-9]|3[01])/((19|20)\\d\\d)")
+	//mm/dd//yyyy
+	if len(str) > 0 && str != "0" && str != "00" && str != "0000" && str != "000" {
+		//parsedDate, _ := time.Parse("01/02/2006", str)
+		t, _ := dateparse.ParseLocal(str)
+		//fmt.Println(parsedDate)
+
+		return &t
+	} else {
+		fmt.Println(str)
+		return nil
+	}
 }
 
 func main() {
@@ -156,6 +171,7 @@ func main() {
 		// return any error will rollback
 
 	}
+	//fmt.Println(result)
 
 	for _, record := range result {
 
@@ -170,7 +186,7 @@ func main() {
 			}
 			u, err := uuid.NewV4()
 			dtr := DTRAudit{
-
+				CreatedAt:     record.ChrCreateddate,
 				MakerID:       record.MakerId,
 				WarehouseID:   record.WarehouseId,
 				ClientId:      record.ClientId,
@@ -183,7 +199,7 @@ func main() {
 				RequestId:     u.String(),
 			}
 			data := tx.Create(&dtr)
-			fmt.Println(dtr.ID)
+			//fmt.Println(dtr.ID)
 
 			err = data.Error
 
@@ -208,6 +224,9 @@ func main() {
 			kb, err := strconv.ParseFloat(fmt.Sprintf("%.2s", qualityMap["KB"]), 32)
 			smb, err := strconv.ParseFloat(fmt.Sprintf("%.2s", qualityMap["SMB"]), 32)
 			ofg, err := strconv.ParseFloat(fmt.Sprintf("%.2s", qualityMap["OFG"]), 32)
+			//fumigation, err := time.Parse("2006-01-02", record.FumigationDate.String)
+			//SprayDate, err := time.Parse("2006-01-02", record.SprayDate.String)
+			//CleaninessDate, err := time.Parse("2006-01-02", record.CleaninessDate.String)
 
 			dtrQuality := DTRQuality{
 				DtrAuditId:             dtr.ID,
@@ -220,10 +239,10 @@ func main() {
 				KarnalBunt:             float32(kb),
 				SmallMudBall:           float32(smb),
 				OtherFoodGrain:         float32(ofg),
-				QualityAssessmentDate:  record.ChrCreateddate,
-				FumigationDate:         record.FumigationDate,
-				SprayDate:              record.SprayDate,
-				CleanlinessDate:        record.CleaninessDate,
+				QualityAssessmentDate:  record.CdCreateddate,
+				FumigationDate:         evaluateString(record.FumigationDate),
+				SprayDate:              evaluateString(record.SprayDate),
+				CleanlinessDate:        evaluateString(record.CleaninessDate),
 			}
 
 			err = tx.Create(&dtrQuality).Error
