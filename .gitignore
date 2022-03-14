@@ -1,3 +1,4 @@
 gorm-log.txt
 .idea
 tmp
+.env

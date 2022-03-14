@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/araddon/dateparse"
+	"github.com/joho/godotenv"
 	uuid "github.com/nu7hatch/gouuid"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -148,9 +149,23 @@ func bagRecord(str string) string {
 
 }
 
-func main() {
+func init() {
+	// load .env file
+	err := godotenv.Load(".env")
 
-	dsn := "root:1234@tcp(127.0.0.1:3306)/arya_dtr?charset=utf8mb4&parseTime=True&loc=Local"
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+}
+
+func main() {
+	host := os.Getenv("MYSQL_HOST")
+	username := os.Getenv("MYSQL_USERNAME")
+	password := os.Getenv("MYSQL_PASSWORD")
+	databaseName := os.Getenv("MYSQL_DB")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, databaseName)
 	file, err := os.Create("gorm-log.txt")
 	if err != nil {
 		// Handle error
