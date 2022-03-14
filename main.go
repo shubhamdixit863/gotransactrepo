@@ -25,7 +25,7 @@ type Result struct {
 	ChrCreateddate *time.Time `json:"chr_created_date,omitempty"`
 	Chamber        string     `json:"chamber,omitempty"`
 	Stack          string     `json:"stack,omitempty"`
-	Bag            []uint8    `json:"bag,omitempty"`
+	Bag            string     `json:"bag,omitempty"`
 	Quantity       string     `json:"quantity,omitempty"`
 	FieldName      string     `json:"field_name,omitempty"`
 	FieldValue     string     `json:"field_value,omitempty"`
@@ -128,12 +128,24 @@ func evaluateString(str string) (response *time.Time) {
 		//parsedDate, _ := time.Parse("01/02/2006", str)
 		t, _ := dateparse.ParseLocal(str)
 		//fmt.Println(parsedDate)
+		if t.IsZero() {
+			return nil
+		}
 
 		return &t
 	} else {
-		fmt.Println(str)
+
 		return nil
 	}
+}
+
+func bagRecord(str string) string {
+	if _, err := strconv.Atoi(str); err == nil {
+		return str
+	} else {
+		return "0"
+	}
+
 }
 
 func main() {
@@ -192,14 +204,14 @@ func main() {
 				ClientId:      record.ClientId,
 				CommodityId:   record.CommodityId,
 				StkNo:         record.Stack,
-				BagsCount:     record.Bag,
+				BagsCount:     []uint8(bagRecord(record.Bag)),
 				FormType:      "quality",
 				DtrType:       "quality",
 				CommodityType: commodityType,
 				RequestId:     u.String(),
 			}
 			data := tx.Create(&dtr)
-			//fmt.Println(dtr.ID)
+			fmt.Println(dtr.ID)
 
 			err = data.Error
 
